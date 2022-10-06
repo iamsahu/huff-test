@@ -1,6 +1,7 @@
 /* Interface */
 #define function setValue(uint256) nonpayable returns ()
 #define function getValue() view returns (uint256)
+#define function getSum(uint256,uint256) pure returns (uint256)
 
 /* Storage Slots */
 #define constant VALUE_LOCATION = FREE_STORAGE_POINTER()
@@ -24,11 +25,19 @@
     0x20 0x00 return
 }
 
+#define macro GET_SUM() = takes(2) returns (1){
+    0x04 calldataload
+    0x08 calldataload
+    add
+    0x20 0x00 return
+}
+
 #define macro MAIN() = takes (0) returns (0) {
     // Identify which function is being called.
     0x00 calldataload 0xE0 shr
     dup1 __FUNC_SIG(setValue) eq set jumpi
     dup1 __FUNC_SIG(getValue) eq get jumpi
+    dup1 __FUNC_SIG(getSum) eq sum jumpi
 
     0x00 0x00 revert
 
@@ -36,5 +45,6 @@
         SET_VALUE()
     get:
         GET_VALUE()
-
+    sum:
+        GET_SUM()
 }

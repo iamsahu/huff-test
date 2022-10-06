@@ -21,6 +21,10 @@ contract SimpleStoreTest is Test {
         console.log(simpleStore.getValue());
         assertEq(value, simpleStore.getValue());
     }
+
+    function testSum() public{
+        console.log(simpleStore.getSum(1,1));
+    }
 }
 
 interface SimpleStore {
