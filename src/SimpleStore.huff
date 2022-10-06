@@ -25,10 +25,14 @@
     0x20 0x00 return
 }
 
-#define macro GET_SUM() = takes(2) returns (1){
+#define macro GET_SUM() = takes(0) returns (0){
     0x04 calldataload   // [value1]
     0x24 calldataload   // [value2,value1]
     add                 // [addresult]
+
+    // Store value in memory.
+    0x00 mstore
+    // Return value
     0x20 0x00 return    
 }
 

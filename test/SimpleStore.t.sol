@@ -22,12 +22,23 @@ contract SimpleStoreTest is Test {
         assertEq(value, simpleStore.getValue());
     }
 
-    function testSum() public{
-        console.log(simpleStore.getSum(1,1));
+    function testSumHuff() public {
+        assertEq(3, simpleStore.getSum(1, 2));
+    }
+
+    function testSumSolidity() public {
+        assertEq(3, sum(1,2));
+    }
+
+    function sum(uint256 a,uint256 b) internal returns(uint256){
+        return a+b;
     }
 }
 
 interface SimpleStore {
     function setValue(uint256) external;
+
     function getValue() external returns (uint256);
+
+    function getSum(uint256, uint256) external returns (uint256);
 }
