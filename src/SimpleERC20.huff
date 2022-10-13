@@ -1,0 +1,218 @@
+/********************************************************************
+                            Interfaces
+********************************************************************/
+/**
+* @dev Returns the amount of tokens in existence.
+*/
+#define function totalSupply() view returns (uint256)
+
+/**
+* @dev Returns the amount of tokens owned by `account`.
+*/
+#define function balanceOf(address account) view returns (uint256)
+
+/**
+* @dev Moves `amount` tokens from the caller's account to `recipient`.
+*
+* Returns a boolean value indicating whether the operation succeeded.
+*
+* Emits a {Transfer} event.
+*/
+#define function transfer(address recipient, uint256 amount) nonpayable returns (bool)
+
+/**
+* @dev Returns the remaining number of tokens that `spender` will be
+* allowed to spend on behalf of `owner` through {transferFrom}. This is
+* zero by default.
+*
+* This value changes when {approve} or {transferFrom} are called.
+*/
+#define function allowance(address owner, address spender) view returns (uint256)
+
+/**
+* @dev Sets `amount` as the allowance of `spender` over the caller's tokens.
+*
+* Returns a boolean value indicating whether the operation succeeded.
+*
+* IMPORTANT: Beware that changing an allowance with this method brings the risk
+* that someone may use both the old and the new allowance by unfortunate
+* transaction ordering. One possible solution to mitigate this race
+* condition is to first reduce the spender's allowance to 0 and set the
+* desired value afterwards:
+* https://github.com/ethereum/EIPs/issues/20#issuecomment-263524729
+*
+* Emits an {Approval} event.
+*/
+#define function approve(address spender, uint256 amount) nonpayable returns (bool)
+
+/**
+* @dev Moves `amount` tokens from `sender` to `recipient` using the
+* allowance mechanism. `amount` is then deducted from the caller's
+* allowance.
+*
+* Returns a boolean value indicating whether the operation succeeded.
+*
+* Emits a {Transfer} event.
+*/
+#define function transferFrom(address sender, address recipient, uint256 amount) nonpayable returns (bool)
+
+/**
+* @dev Emitted when `value` tokens are moved from one account (`from`) to
+* another (`to`).
+*
+* Note that `value` may be zero.
+*/
+#define event Transfer(address indexed from, address indexed to, uint256 value)
+
+/**
+* @dev Emitted when the allowance of a `spender` for an `owner` is set by
+* a call to {approve}. `value` is the new allowance.
+*/
+#define event Approval(address indexed owner, address indexed spender, uint256 value)
+/**
+* @dev Returns the name of the token.
+*/
+#define function name() view returns (string memory)
+
+/**
+* @dev Returns the symbol of the token.
+*/
+#define function symbol() view returns (string memory)
+
+/**
+* @dev Returns the decimals places of the token.
+*/
+#define function decimals() view returns (uint8)
+
+/********************************************************************
+                        Storage Slots 
+ ********************************************************************/
+#define constant _totalSupply = FREE_STORAGE_POINTER()
+#define constant _balanceOf = FREE_STORAGE_POINTER()
+#define constant _allowance = FREE_STORAGE_POINTER()
+#define constant name = FREE_STORAGE_POINTER()
+#define constant symbol = FREE_STORAGE_POINTER()
+#define constant decimal = FREE_STORAGE_POINTER()
+
+/********************************************************************
+                            Methods 
+********************************************************************/
+#define macro MAIN() = takes (0) returns (0) {
+    // Identify which function is being called.
+    0x00 calldataload 0xE0 shr
+    
+    dup1 __FUNC_SIG(totalSupply) eq totalSupply jumpi
+    dup1 __FUNC_SIG(balanceOf) eq balanceOf jumpi
+    dup1 __FUNC_SIG(transfer) eq transfer jumpi
+    dup1 __FUNC_SIG(allowance) eq allowance jumpi
+    dup1 __FUNC_SIG(approve) eq approve jumpi
+    dup1 __FUNC_SIG(transferFrom) eq transferFrom jumpi
+    dup1 __FUNC_SIG(name) eq name jumpi
+    dup1 __FUNC_SIG(decimals) eq decimals jumpi
+
+    0x00 0x00 revert
+    totalSupply:
+        TOTALSUPPLY()
+    balanceOf:
+        BALANCEOF()
+    transfer:
+        TRANSFER()
+    allowance:
+        ALLOWANCE()
+    approve:
+        APPROVE()
+    transferFrom:
+        TRANSFERFROM()
+    name:
+        NAME()
+    decimals:
+        DECIMALS()
+}
+
+#define macro TOTALSUPPLY() = takes(0) returns (1){
+    // Load value from storage.
+    [_totalSupply]   // [ptr]
+    sload                // [value]
+
+    // Store value in memory.
+    0x00 mstore
+
+    // Return value
+    0x20 0x00 return
+}
+
+#define macro BALANCEOF() = takes(0) returns (0){
+    0x04 calldataload // [account]
+    0x20 mstore       // []
+    [_balanceOf]      // [balanceOfPointer]
+    0x00              // [0x00,balanceOfPointer]
+    mstore            // []
+    0x40 0x00         // [0x00,0x40]
+    sha3              // [sha3HashOf(account,balancePointer)]
+    sload
+
+    // Store value in memory.
+    0x00 mstore
+
+    // Return value
+    0x20 0x00 return
+}
+
+#define macro TRANSFER() = takes(0) returns (0){
+    // Check if there is sufficient balance with the caller
+    
+    // load amount to be transferred
+    
+    // compare the amount to be transferred to the balance
+    
+    // Reduce the balance of the caller
+
+    // increase the balance of the receiver
+
+}
+
+#define macro ALLOWANCE() = takes(0) returns (0){}
+
+#define macro APPROVE() = takes(0) returns (0){}
+
+#define macro TRANSFERFROM() = takes(0) returns (0){
+    // Decrease allowance
+    // Use transfer
+}
+
+#define macro NAME() = takes(0) returns (0){
+    // Load value from storage
+    [name]
+    sload
+    // store value in memory
+    0x00 mstore
+    // Return value
+    0x20 0x00 return
+}
+
+#define macro DECIMALS() = takes(0) returns (0){
+    // Load value from storage
+    [decimal]
+    sload
+    // store value in memory
+    0x00 mstore
+    // Return value
+    0x20 0x00 return
+}
+
+/********************************************************************
+                    Data handling macros
+********************************************************************/
+
+// Given a key this macro will return the corresponding slot in a mapping
+#define macro GET_MAPPING_SLOT() = takes(2) returns (1){
+    //[storage slot, key]
+    0x00//[0x00,storage slot, key]
+    mstore//[key]
+    0x20//[0x20,key]
+    mstore
+    0x40 //[0x40]
+    0x00 //[0x00,0x40]
+    // offset,size
+    sha3
+}
