@@ -84,6 +84,7 @@
 */
 #define function decimals() view returns (uint8)
 
+#define function mint(address,uint) nonpayable returns()
 /********************************************************************
                         Storage Slots 
  ********************************************************************/
@@ -109,6 +110,7 @@
     dup1 __FUNC_SIG(transferFrom) eq transferFrom jumpi
     dup1 __FUNC_SIG(name) eq name jumpi
     dup1 __FUNC_SIG(decimals) eq decimals jumpi
+    dup1 __FUNC_SIG(mint) eq mint jumpi
 
     0x00 0x00 revert
     totalSupply:
@@ -127,6 +129,8 @@
         NAME()
     decimals:
         DECIMALS()
+    mint:
+        MINT()
 }
 
 /// @notice Constructor
@@ -211,6 +215,25 @@
     0x00 mstore
     // Return value
     0x20 0x00 return
+}
+
+#define macro MINT() = takes(0) returns (0){
+    // Get balance of address
+    0x04 calldataload //[address]
+    [_balanceOf]      //[balanceOfPointer,address]
+    GET_MAPPING_SLOT() dup1//[slotForAddress's balance,slotForAddress's balance]
+    // Increase balance of address
+    sload //[balanceOfAddress,slotForAddress's balance]
+    0x24 calldataload//[amount,balanceOfAddress,slotForAddress's balance]
+    add////[amount+balanceOfAddress,slotForAddress's balance]
+    swap1
+    sstore
+    // Increase totalSupply
+    [_totalSupply] sload    //[totalSupply]
+    0x24 calldataload //[amount,totalSupply]
+    add               //[amount+totalSupply]
+    [_totalSupply]    //[totalSupplyPointer,amount+totalSupply]
+    sstore
 }
 
 /********************************************************************
