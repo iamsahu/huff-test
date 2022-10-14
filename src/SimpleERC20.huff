@@ -9,7 +9,7 @@
 /**
 * @dev Returns the amount of tokens owned by `account`.
 */
-#define function balanceOf(address account) view returns (uint256)
+#define function balanceOf(address) view returns (uint256)
 
 /**
 * @dev Moves `amount` tokens from the caller's account to `recipient`.
@@ -18,7 +18,7 @@
 *
 * Emits a {Transfer} event.
 */
-#define function transfer(address recipient, uint256 amount) nonpayable returns (bool)
+#define function transfer(address,uint256) nonpayable returns (bool)
 
 /**
 * @dev Returns the remaining number of tokens that `spender` will be
@@ -27,7 +27,7 @@
 *
 * This value changes when {approve} or {transferFrom} are called.
 */
-#define function allowance(address owner, address spender) view returns (uint256)
+#define function allowance(address,address) view returns (uint256)
 
 /**
 * @dev Sets `amount` as the allowance of `spender` over the caller's tokens.
@@ -43,7 +43,7 @@
 *
 * Emits an {Approval} event.
 */
-#define function approve(address spender, uint256 amount) nonpayable returns (bool)
+#define function approve(address,uint256) nonpayable returns (bool)
 
 /**
 * @dev Moves `amount` tokens from `sender` to `recipient` using the
@@ -54,7 +54,7 @@
 *
 * Emits a {Transfer} event.
 */
-#define function transferFrom(address sender, address recipient, uint256 amount) nonpayable returns (bool)
+#define function transferFrom(address, address, uint256) nonpayable returns (bool)
 
 /**
 * @dev Emitted when `value` tokens are moved from one account (`from`) to
@@ -62,22 +62,22 @@
 *
 * Note that `value` may be zero.
 */
-#define event Transfer(address indexed from, address indexed to, uint256 value)
+#define event Transfer(address, address, uint256)
 
 /**
 * @dev Emitted when the allowance of a `spender` for an `owner` is set by
 * a call to {approve}. `value` is the new allowance.
 */
-#define event Approval(address indexed owner, address indexed spender, uint256 value)
+#define event Approval(address, address, uint256)
 /**
 * @dev Returns the name of the token.
 */
-#define function name() view returns (string memory)
+#define function name() view returns (string)
 
 /**
 * @dev Returns the symbol of the token.
 */
-#define function symbol() view returns (string memory)
+#define function symbol() view returns (string)
 
 /**
 * @dev Returns the decimals places of the token.
@@ -92,7 +92,7 @@
 #define constant _allowance = FREE_STORAGE_POINTER()
 #define constant name = FREE_STORAGE_POINTER()
 #define constant symbol = FREE_STORAGE_POINTER()
-#define constant decimal = FREE_STORAGE_POINTER()
+#define constant DECIMAL = FREE_STORAGE_POINTER()
 
 /********************************************************************
                             Methods 
@@ -127,6 +127,19 @@
         NAME()
     decimals:
         DECIMALS()
+}
+
+/// @notice Constructor
+#define macro CONSTRUCTOR() = takes (0) returns (0) {
+    // Copy the decimals into memory from the bytecode
+    0x20                                    // [size] - byte size to copy
+    0x20 codesize sub                       // [offset, size] - offset in the code to copy from
+    0x00                                    // [mem, offset, size] - offset in memory to copy to
+    codecopy                                // []
+
+    // Copy the decimals from memory into the DECIMAL storage location
+    0x00 mload                              // [decimals]
+    [DECIMAL] sstore                  // []
 }
 
 #define macro TOTALSUPPLY() = takes(0) returns (1){
@@ -192,7 +205,7 @@
 
 #define macro DECIMALS() = takes(0) returns (0){
     // Load value from storage
-    [decimal]
+    [DECIMAL]
     sload
     // store value in memory
     0x00 mstore
