@@ -187,12 +187,13 @@
     iszero
     valid jumpi
 
+    0x00 0x00 revert
     // Reduce the balance of the caller
     valid:
         0x24 calldataload //[amount, balanceOf msg.sender,balanceOfSlot]
-        swap1
-        sub //[amount-balanceOf msg.sender,balanceOfSlot]
-        swap1//[balanceOfSlot,amount-balanceOf msg.sender]
+        swap1//[balanceOf msg.sender,amount, balanceOfSlot]
+        sub  //[balanceOf msg.sender-amount, balanceOfSlot]
+        swap1//[balanceOfSlot, balanceOf msg.sender-amount]
         sstore
     
     // increase the balance of the receiver
@@ -206,13 +207,92 @@
     sstore
 }
 
-#define macro ALLOWANCE() = takes(0) returns (0){}
+#define macro ALLOWANCE() = takes(0) returns (0){
+    // Get amount
+    0x24 calldataload //[amount]
+    // Get spender
+    0x04 calldataload //[spenderAddress,amount]
+    [_allowance]        // [allowancePointer,owner,spender]
+    GET_MAPPING_SLOT()  // [ownerSlot,spender]
+    GET_MAPPING_SLOT()  // [spenderSlot]
+    sload
 
-#define macro APPROVE() = takes(0) returns (0){}
+    // Store value in memory.
+    0x00 mstore
+
+    // Return value
+    0x20 0x00 return
+}
+
+#define macro SETALLOWANCE() = takes(3) returns (0) {
+    // [owner,spender,amount]
+    [_allowance]        // [allowancePointer,owner,spender,amount]
+    GET_MAPPING_SLOT()  // [ownerSlot,spender,amount]
+    GET_MAPPING_SLOT()  // [spenderSlot,amount]
+    sstore
+}
+
+#define macro APPROVE() = takes(0) returns (0){
+    // Get amount
+    0x24 calldataload //[amount]
+    // Get spender
+    0x04 calldataload //[spenderAddress,amount]
+    caller            //[msg.sender,spenderAddress,amount]
+    SETALLOWANCE()
+
+    // Store value in memory.
+    0x01 0x00 mstore
+
+    // Return value
+    0x20 0x00 return
+}
 
 #define macro TRANSFERFROM() = takes(0) returns (0){
+    // Get amount
+    0x44 calldataload // [amount]
+    // Get receiver
+    0x24 calldataload // [receiver,amount]
+    caller                      // [caller,receiver,amount]
+    // Get sender
+    0x04 calldataload           // [sender,caller,receiver,amount]
+    [_allowance]                // [allowancePointer,sender,caller,receiver,amount]
+    GET_MAPPING_SLOT()          // [senderSlot,caller,receiver,amount]
+    GET_MAPPING_SLOT() dup1     // [callerSlot,callerSlot,receiver,amount]
+    sload dup1                  // [callerAllowance,callerAllowance,callerSlot,callerSlot,receiver,amount]
+    dup5                        // [amount,callerAllowance,callerAllowance,callerSlot,receiver,amount]
+    gt
+    iszero
+    valid jumpi
+    0x00 0x00 revert
+    valid:
+        dup4                    // [amount,callerAllowance,callerAllowanceSlot,receiver,amount]
+        swap1                   // [callerAllowance,amount,callerAllowanceSlot,receiver,amount]
+        sub                     // [callerAllowance-amount,callerAllowanceSlot,receiver,amount]
+        swap1                   // [callerAllowanceSlot,callerAllowance-amount,receiver,amount]
+        sstore                  // [receiver,amount]
+        // Get sender   
+        0x04 calldataload       // [sender,receiver,amount]
+        [_balanceOf]            // [balanceOfPointer,sender,receiver,amount]
+        GET_MAPPING_SLOT() dup1 // [balanceSlot,balanceSlot,receiver,amount]
+        sload                   // [balance,balanceSlot,receiver,amount]
+        dup4 swap1              // [balance,amount,balanceSlot,receiver,amount]
+        sub                     // [balance-amount,balanceSlot,receiver,amount]
+        swap1                   // [balanceSlot,balance-amount,receiver,amount]
+        sstore                  // [receiver,amount]
+        [_balanceOf]            // [balanceOfPointer,receiver,amount]
+        GET_MAPPING_SLOT() dup1 // [balanceSlot,balanceSlot,amount]
+        sload                   // [balance,balanceSlot,amount]
+        dup3                    // [amount,balance,balanceSlot,amount]
+        add                     // [amount+balance,balanceSlot,amount]
+        swap1                   // [balanceSlot,amount+balance,amount]
+        sstore
     // Decrease allowance
     // Use transfer
+    // Store value in memory.
+    0x01 0x00 mstore
+
+    // Return value
+    0x20 0x00 return
 }
 
 #define macro NAME() = takes(0) returns (0){
