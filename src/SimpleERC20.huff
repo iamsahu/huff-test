@@ -177,15 +177,33 @@
 
 #define macro TRANSFER() = takes(0) returns (0){
     // Check if there is sufficient balance with the caller
-    
-    // load amount to be transferred
-    
+    caller  //[msg.sender]
+    [_balanceOf]      //[balanceOfPointer,address]
+    GET_MAPPING_SLOT() dup1//[balanceOfSlot,balanceOfSlot]
+    sload dup1//[balanceOf msg.sender,balanceOf msg.sender,balanceOfSlot]
+    0x24 calldataload//[amount, balanceOf msg.sender,balanceOf msg.sender,balanceOfSlot]
     // compare the amount to be transferred to the balance
-    
+    gt  //[isGreater,balanceOf msg.sender,balanceOfSlot]
+    iszero
+    valid jumpi
+
     // Reduce the balance of the caller
-
+    valid:
+        0x24 calldataload //[amount, balanceOf msg.sender,balanceOfSlot]
+        swap1
+        sub //[amount-balanceOf msg.sender,balanceOfSlot]
+        swap1//[balanceOfSlot,amount-balanceOf msg.sender]
+        sstore
+    
     // increase the balance of the receiver
-
+    0x04 calldataload //[receiver]
+    [_balanceOf]      //[balanceOfPointer,address]
+    GET_MAPPING_SLOT() dup1//[balanceOfSlot,balanceOfSlot]
+    sload //[balanceOfReceiver,balanceOfSlot]
+    0x24 calldataload //[amount, balanceOfReceiver,balanceOfSlot]
+    add //[amount + balanceOfReceiver,balanceOfSlot]
+    swap1
+    sstore
 }
 
 #define macro ALLOWANCE() = takes(0) returns (0){}

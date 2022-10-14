@@ -44,4 +44,21 @@ contract ERC20Test is Test {
         assertEq(erc20.totalSupply(), uint256(1e18));
         assertEq(erc20.balanceOf(address(this)), uint256(1e18));
     }
+
+    function testTransfer() public {
+        erc20.mint(address(this), uint256(1e18));
+        assertEq(erc20.totalSupply(), uint256(1e18));
+        assertEq(erc20.balanceOf(address(this)), uint256(1e18));
+        erc20.transfer(
+            address(0x65cD9a349aE1A934C0Bb2c8fa78c978F8d6D2a8e),
+            uint256(100)
+        );
+        assertEq(
+            erc20.balanceOf(
+                address(0x65cD9a349aE1A934C0Bb2c8fa78c978F8d6D2a8e)
+            ),
+            uint256(100)
+        );
+        assertEq(erc20.balanceOf(address(this)), uint256(1e18) - uint256(100));
+    }
 }
