@@ -136,10 +136,10 @@
 /// @notice Constructor
 #define macro CONSTRUCTOR() = takes (0) returns (0) {
     // Copy the decimals into memory from the bytecode
-    0x20                                    // [size] - byte size to copy
-    0x20 codesize sub                       // [offset, size] - offset in the code to copy from
-    0x00                                    // [mem, offset, size] - offset in memory to copy to
-    codecopy                                // []
+    0x20                        // [size] - byte size to copy
+    0x20 codesize sub           // [offset, size] - offset in the code to copy from
+    0x00                        // [mem, offset, size] - offset in memory to copy to
+    codecopy                    // []
 
     // Copy the decimals from memory into the DECIMAL storage location
     0x00 mload                              // [decimals]
@@ -148,8 +148,8 @@
 
 #define macro TOTALSUPPLY() = takes(0) returns (1){
     // Load value from storage.
-    [_totalSupply]   // [ptr]
-    sload                // [value]
+    [_totalSupply]              // [ptr]
+    sload                       // [value]
 
     // Store value in memory.
     0x00 mstore
@@ -159,13 +159,13 @@
 }
 
 #define macro BALANCEOF() = takes(0) returns (0){
-    0x04 calldataload // [account]
-    0x20 mstore       // []
-    [_balanceOf]      // [balanceOfPointer]
-    0x00              // [0x00,balanceOfPointer]
-    mstore            // []
-    0x40 0x00         // [0x00,0x40]
-    sha3              // [sha3HashOf(account,balancePointer)]
+    0x04 calldataload           // [account]
+    0x20 mstore                 // []
+    [_balanceOf]                // [balanceOfPointer]
+    0x00                        // [0x00,balanceOfPointer]
+    mstore                      // []
+    0x40 0x00                   // [0x00,0x40]
+    sha3                        // [sha3HashOf(account,balancePointer)]
     sload
 
     // Store value in memory.
@@ -177,44 +177,44 @@
 
 #define macro TRANSFER() = takes(0) returns (0){
     // Check if there is sufficient balance with the caller
-    caller  //[msg.sender]
-    [_balanceOf]      //[balanceOfPointer,address]
-    GET_MAPPING_SLOT() dup1//[balanceOfSlot,balanceOfSlot]
-    sload dup1//[balanceOf msg.sender,balanceOf msg.sender,balanceOfSlot]
-    0x24 calldataload//[amount, balanceOf msg.sender,balanceOf msg.sender,balanceOfSlot]
+    caller                      // [msg.sender]
+    [_balanceOf]                // [balanceOfPointer,address]
+    GET_MAPPING_SLOT() dup1     // [balanceOfSlot,balanceOfSlot]
+    sload dup1                  // [balanceOf msg.sender,balanceOf msg.sender,balanceOfSlot]
+    0x24 calldataload           // [amount, balanceOf msg.sender,balanceOf msg.sender,balanceOfSlot]
     // compare the amount to be transferred to the balance
-    gt  //[isGreater,balanceOf msg.sender,balanceOfSlot]
+    gt                          // [isGreater,balanceOf msg.sender,balanceOfSlot]
     iszero
     valid jumpi
 
     0x00 0x00 revert
     // Reduce the balance of the caller
     valid:
-        0x24 calldataload //[amount, balanceOf msg.sender,balanceOfSlot]
-        swap1//[balanceOf msg.sender,amount, balanceOfSlot]
-        sub  //[balanceOf msg.sender-amount, balanceOfSlot]
-        swap1//[balanceOfSlot, balanceOf msg.sender-amount]
+        0x24 calldataload       // [amount, balanceOf msg.sender,balanceOfSlot]
+        swap1                   // [balanceOf msg.sender,amount, balanceOfSlot]
+        sub                     // [balanceOf msg.sender-amount, balanceOfSlot]
+        swap1                   // [balanceOfSlot, balanceOf msg.sender-amount]
         sstore
     
     // increase the balance of the receiver
-    0x04 calldataload //[receiver]
-    [_balanceOf]      //[balanceOfPointer,address]
-    GET_MAPPING_SLOT() dup1//[balanceOfSlot,balanceOfSlot]
-    sload //[balanceOfReceiver,balanceOfSlot]
-    0x24 calldataload //[amount, balanceOfReceiver,balanceOfSlot]
-    add //[amount + balanceOfReceiver,balanceOfSlot]
+    0x04 calldataload           // [receiver]
+    [_balanceOf]                // [balanceOfPointer,address]
+    GET_MAPPING_SLOT() dup1     // [balanceOfSlot,balanceOfSlot]
+    sload                       // [balanceOfReceiver,balanceOfSlot]
+    0x24 calldataload           // [amount, balanceOfReceiver,balanceOfSlot]
+    add                         // [amount + balanceOfReceiver,balanceOfSlot]
     swap1
     sstore
 }
 
 #define macro ALLOWANCE() = takes(0) returns (0){
     // Get amount
-    0x24 calldataload //[amount]
+    0x24 calldataload           // [amount]
     // Get spender
-    0x04 calldataload //[spenderAddress,amount]
-    [_allowance]        // [allowancePointer,owner,spender]
-    GET_MAPPING_SLOT()  // [ownerSlot,spender]
-    GET_MAPPING_SLOT()  // [spenderSlot]
+    0x04 calldataload           // [spenderAddress,amount]
+    [_allowance]                // [allowancePointer,owner,spender]
+    GET_MAPPING_SLOT()          // [ownerSlot,spender]
+    GET_MAPPING_SLOT()          // [spenderSlot]
     sload
 
     // Store value in memory.
@@ -226,18 +226,18 @@
 
 #define macro SETALLOWANCE() = takes(3) returns (0) {
     // [owner,spender,amount]
-    [_allowance]        // [allowancePointer,owner,spender,amount]
-    GET_MAPPING_SLOT()  // [ownerSlot,spender,amount]
-    GET_MAPPING_SLOT()  // [spenderSlot,amount]
+    [_allowance]                // [allowancePointer,owner,spender,amount]
+    GET_MAPPING_SLOT()          // [ownerSlot,spender,amount]
+    GET_MAPPING_SLOT()          // [spenderSlot,amount]
     sstore
 }
 
 #define macro APPROVE() = takes(0) returns (0){
     // Get amount
-    0x24 calldataload //[amount]
+    0x24 calldataload           //[amount]
     // Get spender
-    0x04 calldataload //[spenderAddress,amount]
-    caller            //[msg.sender,spenderAddress,amount]
+    0x04 calldataload           //[spenderAddress,amount]
+    caller                      //[msg.sender,spenderAddress,amount]
     SETALLOWANCE()
 
     // Store value in memory.
@@ -249,9 +249,9 @@
 
 #define macro TRANSFERFROM() = takes(0) returns (0){
     // Get amount
-    0x44 calldataload // [amount]
+    0x44 calldataload           // [amount]
     // Get receiver
-    0x24 calldataload // [receiver,amount]
+    0x24 calldataload           // [receiver,amount]
     caller                      // [caller,receiver,amount]
     // Get sender
     0x04 calldataload           // [sender,caller,receiver,amount]
@@ -317,20 +317,20 @@
 
 #define macro MINT() = takes(0) returns (0){
     // Get balance of address
-    0x04 calldataload //[address]
-    [_balanceOf]      //[balanceOfPointer,address]
-    GET_MAPPING_SLOT() dup1//[slotForAddress's balance,slotForAddress's balance]
+    0x04 calldataload           // [address]
+    [_balanceOf]                // [balanceOfPointer,address]
+    GET_MAPPING_SLOT() dup1     // [slotForAddress's balance,slotForAddress's balance]
     // Increase balance of address
-    sload //[balanceOfAddress,slotForAddress's balance]
-    0x24 calldataload//[amount,balanceOfAddress,slotForAddress's balance]
-    add////[amount+balanceOfAddress,slotForAddress's balance]
+    sload                       // [balanceOfAddress,slotForAddress's balance]
+    0x24 calldataload           // [amount,balanceOfAddress,slotForAddress's balance]
+    add                         // [amount+balanceOfAddress,slotForAddress's balance]
     swap1
     sstore
     // Increase totalSupply
-    [_totalSupply] sload    //[totalSupply]
-    0x24 calldataload //[amount,totalSupply]
-    add               //[amount+totalSupply]
-    [_totalSupply]    //[totalSupplyPointer,amount+totalSupply]
+    [_totalSupply] sload        // [totalSupply]
+    0x24 calldataload           // [amount,totalSupply]
+    add                         // [amount+totalSupply]
+    [_totalSupply]              // [totalSupplyPointer,amount+totalSupply]
     sstore
 }
 
@@ -341,12 +341,12 @@
 // Given a key this macro will return the corresponding slot in a mapping
 #define macro GET_MAPPING_SLOT() = takes(2) returns (1){
     //[storage slot, key]
-    0x00//[0x00,storage slot, key]
+    0x00                        // [0x00,storage slot, key]
     mstore//[key]
-    0x20//[0x20,key]
+    0x20                        // [0x20,key]
     mstore
-    0x40 //[0x40]
-    0x00 //[0x00,0x40]
+    0x40                        // [0x40]
+    0x00                        // [0x00,0x40]
     // offset,size
     sha3
 }
